@@ -1,0 +1,31 @@
+Model:
+  # Base Arch
+  clip_pretrain: ./checkpoints/ViT-B-16.pt
+  sam_pretrain: ./checkpoints/image_encoder_weights.pth
+  aux_loss: True
+  word_len: 25
+  word_dim: 1024
+  vis_dim: 512
+  # VL-FM
+  fusion_dim: 768
+  # L to V
+  pixel_decoder_in: [768,768,768,768]
+  pixel_decoder_conv: 512
+  pixel_decoder_mask: 768
+  # V to L
+  num_enc: 0
+  num_dec: 2
+  visual_in: 768
+  text_in: 512
+  d_model: 768
+
+Test:
+  transforms:
+    static_resize:
+      size: [ 768,768 ]
+    tonumpy: NULL
+    normalize:
+      mean: [ 0.485, 0.456, 0.406 ]
+      std: [ 0.229, 0.224, 0.225 ]
+    totensor: NULL
+  checkpoint_dir: ./checkpoints/
