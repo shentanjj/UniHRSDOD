@@ -104,14 +104,12 @@ class AttentionPool2d(nn.Module):
                                          mode='bicubic')
         cls_token_weight = cls_token_weight.unsqueeze(1)
         pos_embed_weight = torch.flatten(pos_embed_weight, 2).transpose(1, 2)
-        # pos_embed = torch.cat((cls_token_weight, pos_embed_weight), dim=1)
         return pos_embed_weight.transpose(-2, -1)
 
     def forward(self, x):
         B, C, H, W = x.size()
         res = self.connect(x)
         x = x.reshape(B, C, -1)  # NC(HW)
-        # x = torch.cat([x.mean(dim=-1, keepdim=True), x], dim=-1)  # NC(1+HW)
         pos_embed = self.positional_embedding.unsqueeze(0)
         pos_embed = self.resize_pos_embed(pos_embed, (H, W))  # NC(HW)
         x = x + pos_embed.to(x.dtype)  # NC(HW)
@@ -553,6 +551,4 @@ def build_model(state_dict: dict, txt_length: int):
 
     convert_weights(model)
     model.load_state_dict(state_dict, False)
-    # for name,param in model.named_parameters():
-    #     print(name)
     return model

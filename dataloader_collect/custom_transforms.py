@@ -82,7 +82,6 @@ class totensor:
         pass
 
     def __call__(self, sample):
-        # print('iiiiiiiiiiii')
         if 'image' in sample.keys():
             sample['image'] = sample['image'].transpose((2, 0, 1))
             sample['image'] = torch.from_numpy(sample['image']).float()

@@ -61,7 +61,7 @@ class _LoRA_qkv_timm(nn.Module):
         qkv[..., 2*self.dim:] =  new_value
         return qkv
 
-class UniLSeg(nn.Module):
+class UniHRSOD(nn.Module):
     def __init__(self, cfg):
         super().__init__()
         self.cfg = cfg
@@ -150,28 +150,28 @@ class UniLSeg(nn.Module):
 
 
         deform_inputs1, deform_inputs2 = deform_inputs(img)
-            # SPM forward
+        # SPM forward
         c1, c2, c3, c4 = self.spm(img)
         c2, c3, c4 = self._add_level_embed(c2, c3, c4)
         c = torch.cat([c2, c3, c4], dim=1)
 
-            # Patch Embedding forward
+        # Patch Embedding forward
         x = self.backbone_visual.patch_embed(img)
 
         B, H, W, C = x.shape
         x = x.view(B, -1, C)
         x = self.norm(x)
 
-            # bs, n, dim = x.shape
+        # bs, n, dim = x.shape
         B_, N_, C_ = x.shape
         res = int(np.sqrt(N_))
 
         x = x.view(B_, res, res, -1)
-            # pos_embed = self._get_pos_embed(self.pos_embed[:, 1:], H, W)
+        # pos_embed = self._get_pos_embed(self.pos_embed[:, 1:], H, W)
 
         x = self.pos_drop(x + self.backbone_visual.pos_embed)
 
-            # Interaction
+        # Interaction
         outs = list()
 
         x = x.view(B_, -1, C_)
@@ -185,7 +185,7 @@ class UniLSeg(nn.Module):
 
             outs.append(x.transpose(1, 2).view(bs, dim, H, W).contiguous())
 
-            # Split & Reshape
+        # Split & Reshape
         c2 = c[:, 0:c2.size(1), :]
         c3 = c[:, c2.size(1):c2.size(1) + c3.size(1), :]
         c4 = c[:, c2.size(1) + c3.size(1):, :]
@@ -202,7 +202,7 @@ class UniLSeg(nn.Module):
             x4 = F.interpolate(x4, scale_factor=0.5, mode='bilinear', align_corners=False)
             c1, c2, c3, c4 = c1 + x1, c2 + x2, c3 + x3, c4 + x4
 
-            # Final Norm
+        # Final Norm
         x1 = self.norm1(c1)
         x2 = self.norm2(c2)
         x3 = self.norm3(c3)
@@ -210,15 +210,14 @@ class UniLSeg(nn.Module):
         vis = [x1,x2,x3,x4]
 
         word, state = self.backbone.encode_text(word)
-        # Cross-modal Fusion
 
         b, c, h, w = vis[-1].shape
         visual_fusion_pos = self.visual_fusion_pos(vis[-1])
         visual_fusion_pos = rearrange(visual_fusion_pos, 'b c h w -> (h w) b c', b=b)
-        query_input = rearrange(vis[-1], 'b c h w -> (h w) b c', b=b)
+        v2l_input = rearrange(vis[-1], 'b c h w -> (h w) b c', b=b)
         word_proj = self.fusion_proj(word)
         word_proj = rearrange(word_proj, 'b l c -> l b c')
-        query_input = self.fusion(tgt=query_input,
+        v2l_input = self.fusion(tgt=v2l_input,
                                 memory=word_proj,
                                 memory_key_padding_mask=pad_mask,
                                 pos=None,
@@ -239,30 +238,29 @@ class UniLSeg(nn.Module):
                                 query_pos=visual_fusion_pos) 
             vis[i] = rearrange(fusion_input, '(h w) b c -> b c h w', h=hi, w=wi)
 
-        # Decoder input
-        query_input = rearrange(query_input, '(h w) b c -> b c h w', h=h, w=w)  
+        v2l_input = rearrange(v2l_input, '(h w) b c -> b c h w', h=h, w=w)
 
-        # PixelDecoder
-        pixel_input = []
+        # L to V
+        visual_input = []
 
         for i in range(len(vis)):
-            pixel_input.append(vis[i])
-        pixel_input[-1] = query_input
-        pixel_output = self.pixel_decoder(pixel_input, word, pad_mask)
+            visual_input.append(vis[i])
+        visual_input[-1] = v2l_input
+        visual_output = self.pixel_decoder(visual_input, word, pad_mask)
 
-        # QueryDecoder
-        query_output = self.query_decoder(query_input, state)    
+        # V to L
+        language_output = self.query_decoder(v2l_input, state)
 
-        _, _, h, w = pixel_output.shape
+        _, _, h, w = visual_output.shape
         final_output = []
         if not self.cfg.Model.aux_loss:
-            pred = torch.bmm(query_output, pixel_output.flatten(2)) 
+            pred = torch.bmm(language_output, visual_output.flatten(2))
             pred = rearrange(pred, 'b l (h w) -> b l h w', h=h, w=w)   
         else:
-            for l, q in enumerate(query_output):
+            for l, q in enumerate(language_output):
                 
 
-                pred = torch.bmm(query_output[l], pixel_output.flatten(2))
+                pred = torch.bmm(language_output[l], visual_output.flatten(2))
                 pred = rearrange(pred, 'b l (h w) -> b l h w', h=h, w=w)
 
                 final_output.append(pred)
@@ -270,7 +268,7 @@ class UniLSeg(nn.Module):
         return final_output
 
 if __name__ == '__main__':
-    model = UniLSeg()
+    model = UniHRSOD()
 
     batch_size = 2
     channel = 3

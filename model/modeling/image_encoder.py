@@ -6,8 +6,6 @@ from typing import Optional, Tuple, Type
 
 from .common import LayerNorm2d, MLPBlock
 
-
-# This class and its supporting functions below lightly adapted from the ViTDet backbone available at: https://github.com/facebookresearch/detectron2/blob/main/detectron2/modeling/backbone/vit.py # noqa
 class ImageEncoderViT(nn.Module):
     def __init__(
         self,
@@ -227,16 +225,12 @@ class Attention(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         B, H, W, _ = x.shape
-        # print('attn-x',x.shape)
-        # qkv with shape (3, B, nHead, H * W, C)
         qkv = self.qkv(x).reshape(B, H * W, 3, self.num_heads, -1).permute(2, 0, 3, 1, 4)
-        # q, k, v with shape (B * nHead, H * W, C)
         q, k, v = qkv.reshape(3, B * self.num_heads, H * W, -1).unbind(0)
 
         attn = (q * self.scale) @ k.transpose(-2, -1)
 
         if self.use_rel_pos:
-            # print('k',self.rel_pos_h.shape,self.rel_pos_w.shape)
             attn = add_decomposed_rel_pos(attn, q, self.rel_pos_h, self.rel_pos_w, (H, W), (H, W))
 
         attn = attn.softmax(dim=-1)

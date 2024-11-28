@@ -1,12 +1,8 @@
 import torch
 from torch import nn
 from torch.nn import functional as F
-
 from typing import Any, Dict, List, Tuple
-
 from .image_encoder import ImageEncoderViT
-from .mask_decoder import MaskDecoder
-from .prompt_encoder import PromptEncoder
 
 
 class Sam(nn.Module):
@@ -35,8 +31,6 @@ class Sam(nn.Module):
         """
         super().__init__()
         self.image_encoder = image_encoder
-        # self.prompt_encoder = prompt_encoder
-        # self.mask_decoder = mask_decoder
         self.register_buffer("pixel_mean", torch.Tensor(pixel_mean).view(-1, 1, 1), False)
         self.register_buffer("pixel_std", torch.Tensor(pixel_std).view(-1, 1, 1), False)
 

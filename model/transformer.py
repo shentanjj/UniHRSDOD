@@ -376,4 +376,3 @@ if __name__ == '__main__':
     x = torch.rand(8, 512, 26, 26)
     pos = torch.zeros_like(x)
     query = torch.rand(1, 512)
-    # print(a(src=x, mask=None, query_embed=query, pos_embed=pos)[0].shape)

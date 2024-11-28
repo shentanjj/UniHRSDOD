@@ -177,14 +177,11 @@ class InteractionBlock(nn.Module):
         x = self.injector(query=x, reference_points=deform_inputs1[0],
                           feat=c, spatial_shapes=deform_inputs1[1],
                           level_start_index=deform_inputs1[2])
-        # print('inject',x.shape)
         B_, N_, _ = x.shape
         res = int(np.sqrt(N_))
 
         x = x.view(B_, res, res, -1)
-        # print('x',x.shape)
         for idx, blk in enumerate(blocks):
-            # print(x.shape)
             x = blk(x)
 
         B_, H_, W_,C_ = x.shape

@@ -1,13 +1,76 @@
-# -----------------------------------------------------------------------------
-# Functions for parsing args
-# -----------------------------------------------------------------------------
 import copy
 import os
 from ast import literal_eval
-
+import numpy as np
+import pydensecrf.densecrf as dcrf
 import yaml
+import torch
+import torch.nn.functional as F
+import torchvision.transforms as transforms
 from easydict import EasyDict as ed
+from typing import List, Union
+from utils.simple_tokenizer import SimpleTokenizer as _Tokenizer
+from dataloader_collect.custom_transforms import *
+# 初始化tokenizer
+_tokenizer = _Tokenizer()
+def tokenize(texts: Union[str, List[str]], context_length: int = 100, truncate: bool = False) -> torch.LongTensor:
+    if isinstance(texts, str):
+        texts = [texts]
 
+    sot_token = _tokenizer.encoder["<|startoftext|>"]
+    eot_token = _tokenizer.encoder["<|endoftext|>"]
+    all_tokens = [[sot_token] + _tokenizer.encode(text) + [eot_token] for text in texts]
+    result = torch.zeros(len(all_tokens), context_length, dtype=torch.long)
+
+    for i, tokens in enumerate(all_tokens):
+        if len(tokens) > context_length:
+            if truncate:
+                tokens = tokens[:context_length]
+                tokens[-1] = eot_token
+            else:
+                raise RuntimeError(f"输入的文本 {texts[i]} 超过了最大上下文长度 {context_length}")
+        result[i, :len(tokens)] = torch.tensor(tokens)
+
+    return result
+def get_transform(tfs):
+    comp = []
+    for key, value in zip(tfs.keys(), tfs.values()):
+        if value is not None:
+            tf = eval(key)(**value)
+        else:
+            tf = eval(key)()
+        comp.append(tf)
+    return transforms.Compose(comp)
+def to_numpy(pred, shape):
+    pred = F.interpolate(pred, shape, mode='bilinear', align_corners=True)
+    pred = pred.data.cpu()
+    pred = pred.numpy().squeeze()  # 转为单通道
+    return pred
+def apply_crf(image, prob_map, num_classes=2):
+    image = np.array(image)
+    prob_map = np.array(prob_map)
+    if prob_map.max() > 1.0:
+        prob_map = prob_map / 255.0  # 确保在 [0, 1] 范围内
+
+    if len(prob_map.shape) == 2:  # 假设 prob_map 是单通道灰度图
+        prob_map = np.stack([1 - prob_map, prob_map], axis=0)
+        print("prob_map shape after conversion:", prob_map.shape)
+
+    H, W = prob_map.shape[1], prob_map.shape[2]
+    prob_map = prob_map.astype(np.float32)
+    prob_map = prob_map.reshape((num_classes, -1))
+    dcrf_model = dcrf.DenseCRF2D(W, H, num_classes)  # (width, height, num_classes)
+    dcrf_model.setUnaryEnergy(prob_map)
+    dcrf_model.addPairwiseGaussian(sxy=3, compat=10)
+    dcrf_model.addPairwiseBilateral(sxy=80, srgb=13, rgbim=image, compat=12)
+
+    Q = dcrf_model.inference(5)
+    Q = np.array(Q).reshape((num_classes, H, W))
+
+    refined_pred_image = Image.fromarray((Q[0] * 255).astype(np.uint8))
+    refined_pred_image = np.array(refined_pred_image)
+
+    return refined_pred_image
 class CfgNode(dict):
     """
     CfgNode represents an internal node in the configuration tree. It's a simple
