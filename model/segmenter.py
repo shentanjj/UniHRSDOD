@@ -13,7 +13,6 @@ from .adapter_modules import SpatialPriorModule, InteractionBlock, deform_inputs
 from torch.nn import init
 def weights_init_kaiming(m):
     classname = m.__class__.__name__
-    #print(classname)
     if classname.find('Conv') != -1:
         init.kaiming_normal_(m.weight.data, a=0, mode='fan_in')
     elif classname.find('Linear') != -1:
@@ -77,10 +76,9 @@ class UniHRSOD(nn.Module):
             else:
                 self.backbone_visual.blocks[t_layer_i] = nn.Identity()
 
-        # Cross-modal Fusion
         self.fusion = FusionModule(d_model=cfg.Model.fusion_dim)
         self.fusion_proj = nn.Linear(512, cfg.Model.fusion_dim)
-        self.visual_fusion_pos = PositionEmbeddingSine2D(cfg.Model.fusion_dim//2, normalize=True)   # half channel of vision feature
+        self.visual_fusion_pos = PositionEmbeddingSine2D(cfg.Model.fusion_dim//2, normalize=True)
 
         self.all_fusion_proj = nn.ModuleList()
         self.all_fusion_module = nn.ModuleList()
@@ -91,10 +89,7 @@ class UniHRSOD(nn.Module):
             self.all_fusion_module.append(FusionModule(d_model=768)),
             self.all_fusion_pos.append(PositionEmbeddingSine2D(384, normalize=True))
 
-        # Pixel Decoder
         self.pixel_decoder = CrossModalFPNDecoder(cfg.Model.pixel_decoder_in, cfg.Model.pixel_decoder_conv, cfg.Model.pixel_decoder_mask, norm=None)
-
-        # Query Decoder
         self.query_decoder = QueryDecoder(d_model=cfg.Model.d_model, num_enc=cfg.Model.num_enc, num_dec=cfg.Model.num_dec, in_visual_dim=cfg.Model.visual_in, in_text_dim=cfg.Model.text_in,
                                         return_intermediate_dec=cfg.Model.aux_loss)
 
@@ -143,12 +138,6 @@ class UniHRSOD(nn.Module):
     def forward(self, img, word):
         # padding mask used in decoder
         pad_mask = torch.zeros_like(word).masked_fill_(word == 0, 1).bool() # B, L
-
-        # vis: 4✕ / 8✕ / 16✕ / 32✕
-        # word: b, length, 512
-        # state: b, 1024
-
-
         deform_inputs1, deform_inputs2 = deform_inputs(img)
         # SPM forward
         c1, c2, c3, c4 = self.spm(img)
@@ -235,7 +224,7 @@ class UniHRSOD(nn.Module):
                                 memory=word_proj,
                                 memory_key_padding_mask=pad_mask,
                                 pos=None,
-                                query_pos=visual_fusion_pos) 
+                                query_pos=visual_fusion_pos)
             vis[i] = rearrange(fusion_input, '(h w) b c -> b c h w', h=hi, w=wi)
 
         v2l_input = rearrange(v2l_input, '(h w) b c -> b c h w', h=h, w=w)
@@ -255,10 +244,10 @@ class UniHRSOD(nn.Module):
         final_output = []
         if not self.cfg.Model.aux_loss:
             pred = torch.bmm(language_output, visual_output.flatten(2))
-            pred = rearrange(pred, 'b l (h w) -> b l h w', h=h, w=w)   
+            pred = rearrange(pred, 'b l (h w) -> b l h w', h=h, w=w)
         else:
             for l, q in enumerate(language_output):
-                
+
 
                 pred = torch.bmm(language_output[l], visual_output.flatten(2))
                 pred = rearrange(pred, 'b l (h w) -> b l h w', h=h, w=w)
@@ -275,6 +264,4 @@ if __name__ == '__main__':
     height = 512
     width = 512
     input_data = torch.randn(batch_size, channel, height, width)
-
-    # 将输入数据传递给模型进行前向传播
     output = model(input_data)

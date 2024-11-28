@@ -551,4 +551,5 @@ def build_model(state_dict: dict, txt_length: int):
 
     convert_weights(model)
     model.load_state_dict(state_dict, False)
+
     return model

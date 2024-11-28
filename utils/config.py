@@ -11,7 +11,7 @@ from easydict import EasyDict as ed
 from typing import List, Union
 from utils.simple_tokenizer import SimpleTokenizer as _Tokenizer
 from dataloader_collect.custom_transforms import *
-# 初始化tokenizer
+# Initialize the tokenizer
 _tokenizer = _Tokenizer()
 def tokenize(texts: Union[str, List[str]], context_length: int = 100, truncate: bool = False) -> torch.LongTensor:
     if isinstance(texts, str):
@@ -28,7 +28,7 @@ def tokenize(texts: Union[str, List[str]], context_length: int = 100, truncate: 
                 tokens = tokens[:context_length]
                 tokens[-1] = eot_token
             else:
-                raise RuntimeError(f"输入的文本 {texts[i]} 超过了最大上下文长度 {context_length}")
+                raise RuntimeError(f"Entered text {texts[i]} maximum context length exceeded {context_length}")
         result[i, :len(tokens)] = torch.tensor(tokens)
 
     return result
@@ -44,15 +44,15 @@ def get_transform(tfs):
 def to_numpy(pred, shape):
     pred = F.interpolate(pred, shape, mode='bilinear', align_corners=True)
     pred = pred.data.cpu()
-    pred = pred.numpy().squeeze()  # 转为单通道
+    pred = pred.numpy().squeeze()
     return pred
 def apply_crf(image, prob_map, num_classes=2):
     image = np.array(image)
     prob_map = np.array(prob_map)
     if prob_map.max() > 1.0:
-        prob_map = prob_map / 255.0  # 确保在 [0, 1] 范围内
+        prob_map = prob_map / 255.0
 
-    if len(prob_map.shape) == 2:  # 假设 prob_map 是单通道灰度图
+    if len(prob_map.shape) == 2:
         prob_map = np.stack([1 - prob_map, prob_map], axis=0)
         print("prob_map shape after conversion:", prob_map.shape)
 
@@ -128,9 +128,7 @@ def load_cfg_from_cfg_file(file):
     with open(file, 'r') as f:
         cfg_from_file = yaml.safe_load(f)
 
-    # 将yaml文件中的字典递归转换为CfgNode对象
     def convert_dict_to_cfgnode(d):
-        """递归地将字典转换为CfgNode对象"""
         if isinstance(d, dict):
             return CfgNode({k: convert_dict_to_cfgnode(v) if isinstance(v, dict) else v for k, v in d.items()})
         return d
