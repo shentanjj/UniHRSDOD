@@ -5,7 +5,7 @@ import numpy as np
 from PIL import Image
 import utils.config as config
 from model import build_segmenter
-from utils.config import apply_crf,to_numpy,get_transform,tokenize
+from utils.config import *
 
 # Get command line arguments
 def parse_args():
@@ -63,9 +63,10 @@ def test(args):
     pred_image = pred_image.resize((original_size[0], original_size[1]), Image.BILINEAR)
 
     pred_image = apply_crf(image, pred_image, num_classes=2)
+    pred_image = overlay_foreground_with_random_color(pred_image, image)
     output_image_name = os.path.splitext(sample['name'])[0] + '.png'
 
-    pred_image = Image.fromarray(pred_image.astype(np.uint8))
+    pred_image = Image.fromarray(np.array(pred_image).astype(np.uint8))
     pred_image.save(os.path.join(args.save_path, output_image_name))
     print(f"Results saved to {os.path.join(args.save_path, output_image_name)}")
 

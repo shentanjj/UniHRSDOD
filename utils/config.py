@@ -11,8 +11,24 @@ from easydict import EasyDict as ed
 from typing import List, Union
 from utils.simple_tokenizer import SimpleTokenizer as _Tokenizer
 from dataloader_collect.custom_transforms import *
+import random
 # Initialize the tokenizer
 _tokenizer = _Tokenizer()
+
+def overlay_foreground_with_random_color(pred_image, original_image):
+    pred_image = np.array(pred_image)
+
+    original_image = np.array(original_image)
+
+    random_color = np.array([random.randint(0, 255) for _ in range(3)])
+
+    foreground_mask = pred_image > 0
+
+    for i in range(3):
+        original_image[..., i] = np.where(foreground_mask, random_color[i], original_image[..., i])
+
+    return Image.fromarray(original_image)
+
 def tokenize(texts: Union[str, List[str]], context_length: int = 100, truncate: bool = False) -> torch.LongTensor:
     if isinstance(texts, str):
         texts = [texts]
