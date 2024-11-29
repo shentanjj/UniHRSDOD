@@ -6,6 +6,7 @@ High-Resolution Salient Object Detection (HRSOD) methods typically rely on purel
     <img width="1000" alt="image" src="https://anonymous.4open.science/r/UniHRSOD-7373/img/Network.png">
 </p>
 We have open-sourced the inference code and UniHRSOD model weights. If you find any bugs due to carelessness on our part in organizing the code, feel free to contact us and point that!
+
 ## 👉 Installation
 Install required packages.
 ```sh
