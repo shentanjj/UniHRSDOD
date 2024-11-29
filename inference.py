@@ -19,7 +19,7 @@ def parse_args():
     cfg = config.load_cfg_from_cfg_file('config/train_test.yaml')
     cfg.image_path = args.image_path
     cfg.save_path = args.save_path
-    cfg.text = args.text
+    cfg.language_ins = args.language_ins
 
     return cfg
 
@@ -36,7 +36,7 @@ def test(args):
     transform = get_transform(args.Test.transforms)
     image = Image.open(args.image_path).convert('RGB')
 
-    sample = {'image': image, 'text': args.text, 'ori_shape': image.size,
+    sample = {'image': image, 'text': args.language_ins, 'ori_shape': image.size,
               'name': os.path.basename(args.image_path)}
 
     sample = transform(sample)
@@ -44,7 +44,7 @@ def test(args):
     inputs_v = sample['image'].unsqueeze(0).float().to(device)
 
     # Tokenize the input text
-    text_tokens = tokenize(args.text, args.Model.word_len, True).to(device)
+    text_tokens = tokenize(args.language_ins, args.Model.word_len, True).to(device)
 
     # Inference
     with torch.no_grad():

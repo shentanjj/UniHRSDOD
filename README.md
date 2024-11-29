@@ -1,6 +1,6 @@
 ## 👉 Installation
-```sh
 Install required packages.
+```sh
 conda create -n UniHRSOD python=3.8
 conda activate UniLHRSOD
 conda install pytorch==2.0.0 torchvision==2.0.0  torchaudio==2.0.0 -c pytorch -c conda-forge -y
@@ -9,14 +9,13 @@ pip install -r requirements.txt
 
 ## 👉 Model Checkpoints
 
-We host our model checkpoints and other pre-trained backbone weights on Google Netdisk: https://pan.baidu.com/s/1eCuHs3qhd1lyVGqUOdaeFw?pwd=r1pg, Password：r1pg 
-
-Please download the checkpoint from Google Netdisk and place them under **"ckpt/"**.
+We host our model checkpoints and other pre-trained backbone weights on Google Netdisk,
+Please download the checkpoint from here and place them under **"checkpoints/"**.
 
 ## 👉 Inference with Language Instruction
-You can run the general inference by the following command:
+You can run the inference with Language Instruction by the following command:
 ```sh
-python inference.py --image_path <IMG_PATH> --save_path <OUTPUT_PATH>--language_ins <'EXPRESSION'> 
+python inference.py --image_path <IMG_PATH> --save_path <OUTPUT_PATH> --language_ins <'EXPRESSION'> 
 
 python general_inference.py  --img <IMG_PATH> --exp <'EXPRESSION'> --sp <MASK_SAVE_PATH>
 ```
