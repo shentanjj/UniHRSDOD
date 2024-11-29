@@ -13,7 +13,7 @@ def parse_args():
     parser.add_argument('--image_path', type=str, default='./img/000065.jpg',
                         help="Input image path")
     parser.add_argument('--save_path', type=str, default='./output', help="Output image directory")
-    parser.add_argument('--text', type=str, default='the most salient object in the image is a windmill,whose blades have a grid-like structure.',
+    parser.add_argument('--language_ins', type=str, default='the most salient object in the image is a windmill,whose blades have a grid-like structure.',
                         help="Language description of the input image")
     args = parser.parse_args()
     cfg = config.load_cfg_from_cfg_file('config/train_test.yaml')
