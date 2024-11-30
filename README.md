@@ -8,7 +8,6 @@ High-Resolution Salient Object Detection (HRSOD) methods typically rely on purel
 We have open-sourced the inference code and UniHRSOD model weights. If you find any bugs due to carelessness on our part in organizing the code, feel free to contact us and point that!
 
 ## 👉 Installation
-Install required packages.
 ```sh
 conda create -n UniHRSOD python=3.8
 conda activate UniLHRSOD
