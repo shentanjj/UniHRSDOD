@@ -12,8 +12,8 @@ Install required packages.
 ```sh
 conda create -n UniHRSOD python=3.8
 conda activate UniLHRSOD
-conda install pytorch==2.0.0 torchvision==2.0.0  torchaudio==2.0.0 -c pytorch -c conda-forge -y
 pip install -r requirements.txt
+cd ops & sh make.sh # compile deformable attention
 ```
 
 ## 👉 Model Checkpoints
