@@ -18,7 +18,7 @@ cd ops & sh make.sh # compile deformable attention
 ## 👉 Model Checkpoints
 
 We host our model checkpoints and other pre-trained backbone weights on Google Netdisk,
-Please download the checkpoint from here and place them under **"checkpoints/"**.
+Please download the checkpoint from [here](https://drive.google.com/drive/folders/1pOhwo3PCJO6Qy0atcjN-vwjNra_E2-X_?usp=drive_link) and place them under **"checkpoints/"**.
 
 ## 👉 Inference with Language Instruction
 You can run the inference with Language Instruction by the following command:
