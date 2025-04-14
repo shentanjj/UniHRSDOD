@@ -1,6 +1,6 @@
 # **Unified High Resolution Salient Object Detection with Language Instruction**
 ## 👉 Abstract
-High-Resolution Salient Object Detection (HRSOD) methods typically rely on purely visual features to detect and segment the most salient objects within an image. These models lack discriminative semantic features of salient objects, which makes them prone to false positives in complex scenes. To address this, we propose the Unified High-Resolution Salient Object Detection with Language Instruction(UniHRSOD) framework. First, we introduce a vision-language dataset L-HRSOD. To our knowledge, this is the first work to incorporate textual information into the HRSOD task. Based on L-HRSOD, we develop UniHRSOD, a language-driven, general-purpose HRSOD approach that integrates visual and language features. UniHRSOD uses a Fusion Attention Module (FAM) and a language update strategy to enhance its capability to recognize salient objects. Extensive experimental results indicate that UniHRSOD significantly outperforms existing purely visual methods, validating the effective guiding role of linguistic information.See here for the relevant code and data.
+High-Resolution Salient Object Detection (HRSOD) aims to accurately identify and segment the most attention-grabbing targets in high-resolution images. Existing methods primarily rely on purely visual features for global saliency localization, lacking discriminative semantic features that can fundamentally distinguish targets. This limitation makes them susceptible to interference from non-salient objects in complex scenes, resulting in false positives and missed detections. To address this challenge, we propose a Saliency-Aware Language Guided Network (SALNet), which effectively leverages saliency priors in language to guide object recognition within the visual space. To further support cross-modal modeling, we construct L-HRSOD, the first cross-modal Vision-Language (VL) dataset specifically designed for HRSOD, consisting of 18,522 pairs of highly aligned high-resolution images and their corresponding language descriptions. Moreover, with the proposed dynamic language update strategy and multi-granularity Saliency-Aware attention module, our method facilitates deep information fusion in the joint VL representation space. This effectively suppresses non-salient interference, focuses on the salient targets described by the language, and recovers missing salient regions, significantly reducing false positives and missed detections. Experiments on existing HRSOD benchmark datasets show that SALNet significantly outperforms current vision-only methods in localization accuracy and multi-target recognition performance, validating the effectiveness of language guidance. See here for the relevant code and data.
 ## 👉 Network
 <p align="center">
     <img width="1000" alt="image" src="https://anonymous.4open.science/r/UniHRSOD-7373/img/Network.png">
@@ -9,8 +9,8 @@ We have open-sourced the inference code and UniHRSOD model weights. If you find 
 
 ## 👉 Installation
 ```sh
-conda create -n UniHRSOD python=3.8
-conda activate UniLHRSOD
+conda create -n SALNet python=3.8
+conda activate SALNet
 pip install -r requirements.txt
 cd ops & sh make.sh # compile deformable attention
 ```
